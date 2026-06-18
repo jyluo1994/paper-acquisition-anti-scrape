@@ -8,7 +8,6 @@
 <p align="center">
   <img alt="OpenClaw/Codex Skill" src="https://img.shields.io/badge/OpenClaw%2FCodex-skill-2563eb">
   <img alt="MCP scansci-pdf" src="https://img.shields.io/badge/MCP-scansci--pdf-059669">
-  <img alt="隐私友好" src="https://img.shields.io/badge/privacy-no%20secrets%20included-7c3aed">
 </p>
 
 这是一个面向 OpenClaw/Codex 的学术论文 PDF 获取 skill。它采用“开放获取优先”的流程：先用 `scansci-pdf` 快速检索/下载；遇到出版商页面需要登录、浏览器会话或浏览器专属 PDF 下载时，再切换到授权机构登录和真实浏览器兜底。

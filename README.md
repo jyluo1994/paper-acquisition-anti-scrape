@@ -8,7 +8,6 @@
 <p align="center">
   <img alt="OpenClaw/Codex Skill" src="https://img.shields.io/badge/OpenClaw%2FCodex-skill-2563eb">
   <img alt="MCP scansci-pdf" src="https://img.shields.io/badge/MCP-scansci--pdf-059669">
-  <img alt="Privacy friendly" src="https://img.shields.io/badge/privacy-no%20secrets%20included-7c3aed">
 </p>
 
 OpenClaw/Codex skill for resilient academic PDF acquisition. It uses an OA-first workflow with `scansci-pdf`, then falls back to authorized institutional login and real-browser PDF download when publisher pages require browser sessions.
