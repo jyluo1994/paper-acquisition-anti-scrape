@@ -1,10 +1,37 @@
 # Paper Acquisition Anti-Scrape Skill
 
-语言： [English](README.md) | **中文**
+<p align="center">
+  <a href="README.md">English</a> |
+  <a href="README.zh-CN.md"><strong>中文</strong></a>
+</p>
+
+<p align="center">
+  <img alt="OpenClaw/Codex Skill" src="https://img.shields.io/badge/OpenClaw%2FCodex-skill-2563eb">
+  <img alt="MCP scansci-pdf" src="https://img.shields.io/badge/MCP-scansci--pdf-059669">
+  <img alt="隐私友好" src="https://img.shields.io/badge/privacy-no%20secrets%20included-7c3aed">
+</p>
 
 这是一个面向 OpenClaw/Codex 的学术论文 PDF 获取 skill。它采用“开放获取优先”的流程：先用 `scansci-pdf` 快速检索/下载；遇到出版商页面需要登录、浏览器会话或浏览器专属 PDF 下载时，再切换到授权机构登录和真实浏览器兜底。
 
 这个仓库本身就是 skill 目录。把它 clone 到本地 `skills/` 目录，并保持目录名为 `paper-acquisition-anti-scrape` 即可。
+
+## 一眼看懂
+
+| 需求 | 路线 |
+| --- | --- |
+| 快速下载 DOI/arXiv PDF | `scansci-pdf` MCP |
+| 有机构权限但遇到 paywall | SSO/CARSI/OpenAthens/WebVPN/EZProxy 登录 |
+| 出版商要求浏览器内下载 PDF | Chrome CDP + browser-probe 脚本 |
+| 批量下载且避免触发风控 | 按出版商分桶冷却和重试 |
+
+## 目录
+
+- [快速安装](#快速安装)
+- [必需依赖：scansci-pdf MCP](#必需依赖scansci-pdf-mcp)
+- [可选：浏览器兜底](#可选浏览器兜底)
+- [常用工作流](#常用工作流)
+- [故障排查](#故障排查)
+- [安全与隐私](#安全与隐私)
 
 ## 功能
 

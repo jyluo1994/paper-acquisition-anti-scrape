@@ -1,10 +1,37 @@
 # Paper Acquisition Anti-Scrape Skill
 
-Language: **English** | [中文](README.zh-CN.md)
+<p align="center">
+  <a href="README.md"><strong>English</strong></a> |
+  <a href="README.zh-CN.md">中文</a>
+</p>
+
+<p align="center">
+  <img alt="OpenClaw/Codex Skill" src="https://img.shields.io/badge/OpenClaw%2FCodex-skill-2563eb">
+  <img alt="MCP scansci-pdf" src="https://img.shields.io/badge/MCP-scansci--pdf-059669">
+  <img alt="Privacy friendly" src="https://img.shields.io/badge/privacy-no%20secrets%20included-7c3aed">
+</p>
 
 OpenClaw/Codex skill for resilient academic PDF acquisition. It uses an OA-first workflow with `scansci-pdf`, then falls back to authorized institutional login and real-browser PDF download when publisher pages require browser sessions.
 
 This repository is the skill folder itself. Clone it into your local `skills/` directory as `paper-acquisition-anti-scrape`.
+
+## At a Glance
+
+| Need | Route |
+| --- | --- |
+| Fast DOI/arXiv PDF download | `scansci-pdf` MCP |
+| Paywall with authorized access | SSO/CARSI/OpenAthens/WebVPN/EZProxy login |
+| Browser-only PDF delivery | Chrome CDP + browser-probe scripts |
+| Batch download without triggering blocks | Per-publisher cooldown and retry rules |
+
+## Contents
+
+- [Quick Install](#quick-install)
+- [Required Dependency: scansci-pdf MCP](#required-dependency-scansci-pdf-mcp)
+- [Optional Browser Fallback](#optional-browser-fallback)
+- [Common Workflows](#common-workflows)
+- [Troubleshooting](#troubleshooting)
+- [Safety and Privacy](#safety-and-privacy)
 
 ## What It Does
 
