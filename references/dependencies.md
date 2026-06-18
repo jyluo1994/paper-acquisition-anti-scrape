@@ -10,9 +10,10 @@ This skill package includes:
 - `references/`
 - `scripts/install.sh`
 - `scripts/check_environment.sh`
+- `scripts/browser-fallback.js`
 - `agents/openai.yaml`
 
-This package does not bundle third-party binaries, browser extensions, publisher cookies, institutional credentials, or the user's private `~/.openclaw/browser-probe` scripts. Those must be installed from public sources or copied from an authorized internal source.
+This package does not bundle third-party binaries, browser extensions, publisher cookies, institutional credentials, or API keys.
 
 ## Install the Skill Itself
 
@@ -35,7 +36,7 @@ To install somewhere explicit:
 bash scripts/install.sh /path/to/workspace/skills
 ```
 
-## scansci-pdf MCP
+## Required: scansci-pdf MCP
 
 Public source: <https://pypi.org/project/scansci-pdf/>
 
@@ -57,7 +58,7 @@ mcp:
       args: ["run"]
 ```
 
-If installed in a virtual environment, point `command` to the venv executable, for example:
+If installed in a virtual environment:
 
 ```yaml
 mcp:
@@ -67,40 +68,31 @@ mcp:
       args: ["run"]
 ```
 
-After editing the gateway config, restart the OpenClaw/Codex gateway and run:
+After editing the gateway config, restart the gateway and run:
 
 ```text
 scansci_pdf_setup_check
 scansci_pdf_health_check
 ```
 
-## Browser Fallback Dependencies
+## Optional: Browser Fallback
 
-Install Node.js and Chrome/Chromium. If `browser-probe` uses Puppeteer directly, use the public package at <https://www.npmjs.com/package/puppeteer-core> or the Puppeteer docs at <https://pptr.dev/guides/installation>.
-
-Then prepare the browser-probe scripts:
+Install Node.js, Chrome/Chromium, and puppeteer-core:
 
 ```bash
-mkdir -p ~/.openclaw
-cp -R /authorized/source/browser-probe ~/.openclaw/browser-probe
-cd ~/.openclaw/browser-probe
-npm install
+npm install puppeteer-core
 ```
 
-Expected scripts:
-
-```text
-~/.openclaw/browser-probe/acquire-paper.js
-~/.openclaw/browser-probe/fetch-paper-pdf.js
-~/.openclaw/browser-probe/fetch-wiley-simple.js
-~/.openclaw/browser-probe/elsevier-session-acquire.js
-~/.openclaw/browser-probe/test-springer-download-from-doi.js
-```
-
-Start Chrome with CDP enabled when scripts connect to an existing browser:
+Start Chrome with CDP enabled:
 
 ```bash
 google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.openclaw/browser-clone"
+```
+
+The bundled script handles the rest:
+
+```bash
+node scripts/browser-fallback.js "10.xxxx/yyyy"
 ```
 
 On macOS:
@@ -111,53 +103,49 @@ On macOS:
   --user-data-dir="$HOME/.openclaw/browser-clone"
 ```
 
+Verify CDP:
+
+```bash
+curl -s http://127.0.0.1:9222/json/version
+```
+
 ## Optional Components
 
-### Camofox/Camoufox
+### Camoufox (anti-detection browser)
 
-Public sources:
+Public source: <https://pypi.org/project/camoufox/>
 
-- <https://camoufox.com/python/installation/>
-- <https://pypi.org/project/camoufox/>
-
-Use when persistent anti-detection browser sessions are required by `scansci-pdf` or local browser scripts:
+Used by `scansci-pdf` for persistent SSO sessions:
 
 ```bash
 python3 -m pip install -U camoufox[geoip]
 python3 -m camoufox fetch
 ```
 
-### Puppeteer
+### Tor (anonymous access)
 
-Use when `browser-probe` does not already include dependencies:
-
-```bash
-cd ~/.openclaw/browser-probe
-npm install puppeteer-core
-```
-
-### Tor
-
-Prefer scansci-pdf managed Tor:
+Managed by `scansci-pdf`:
 
 ```text
 scansci_pdf_tor_install
 scansci_pdf_tor_start
+scansci_pdf_download(identifier="...", use_tor=true)
 ```
 
-Use `scansci_pdf_tor_start(use_bridges=true)` only where bridges are appropriate and allowed.
+### Elsevier API Key (free, optional)
 
-### Proxy Extension
+Speeds up ScienceDirect downloads 10-30x:
 
-ZeroOmega/SwitchyOmega-style browser proxy profiles are optional. Configure them manually in Chrome when the browser fallback needs to match an existing proxy route.
+```text
+scansci_pdf_elsevier_setup
+scansci_pdf_config_set(key="elsevier_api_key", value="your-key")
+```
 
-Public sources:
+### EZProxy / WebVPN
 
-- <https://github.com/zero-peak/ZeroOmega>
-- <https://chromewebstore.google.com/detail/proxy-switchyomega-3-zero/pfnededegaaopdmhkdmcofjmoldfiped>
+Configured through `scansci-pdf` commands, see SKILL.md for details.
 
 ## Redistribution Notes
 
 - It is safe to share this skill folder.
 - Do not share browser profiles, cookies, SSO session stores, proxy credentials, API keys, or institutional login data.
-- Do not claim that browser-probe or CloakBrowser is included unless the package actually includes those files and redistribution is allowed.

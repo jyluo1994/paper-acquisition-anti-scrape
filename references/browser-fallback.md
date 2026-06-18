@@ -9,57 +9,52 @@ Many publishers deliver PDFs behind browser-mediated flows. Even with valid cook
 ## Preconditions
 
 - Chrome/Chromium is installed.
-- A persistent user data directory is available, usually `~/.openclaw/browser-clone`.
-- CDP is reachable at `http://127.0.0.1:9222/json/version` when using existing-browser mode.
-- `~/.openclaw/browser-probe/` exists and `npm install` has been run.
-- Any institutional login is performed by the user in the browser; never ask the agent to capture passwords.
+- Node.js with `puppeteer-core`:
+  ```bash
+  npm install puppeteer-core
+  ```
+- Chrome CDP reachable at `http://127.0.0.1:9222`:
+  ```bash
+  google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.openclaw/browser-clone"
+  ```
+- The script at `scripts/browser-fallback.js` is available.
 
 ## Standard Flow
 
 1. Start or connect to Chrome with CDP.
-2. Resolve DOI to a publisher landing page.
-3. Detect publisher and available PDF links/buttons.
-4. If login is required, let the user complete SSO/CARSI/OpenAthens/WebVPN/EZProxy.
-5. Revisit the landing page with the same browser profile.
-6. Click or navigate to the PDF endpoint.
-7. Confirm `Content-Type: application/pdf` or a PDF magic header before saving.
-8. Save with deterministic naming and report the path.
-
-Preferred command:
-
-```bash
-node ~/.openclaw/browser-probe/acquire-paper.js "10.xxxx/yyyy"
-```
+2. Run the fallback script:
+   ```bash
+   node scripts/browser-fallback.js "10.xxxx/yyyy"
+   ```
+3. The script automatically:
+   - Resolves DOI to publisher landing page
+   - Detects publisher and available PDF links
+   - Downloads PDF through CDP
+   - Reports structured status to stdout
 
 ## Cookie Persistence
 
-Common locations:
+Login state persists across runs in the Chrome user data directory:
 
 ```text
-~/.scansci-pdf/camofox/
-~/.scansci-pdf/vpnsci/
-~/.scansci-pdf/ezproxy/
-~/.openclaw/browser-clone/Default
+$HOME/.openclaw/browser-clone/Default/
 ```
 
-Do not share these folders. They may contain private login state.
+For institutional access, run `scansci_pdf_login(identifier="DOI")` which handles SSO through CloakBrowser, then retry the fallback script with the same browser profile.
 
 ## Human Verification
 
-If the browser shows a CAPTCHA, Turnstile, suspicious-traffic page, or repeated access challenge:
+If the browser shows a CAPTCHA, Turnstile, or suspicious-traffic page:
 
 1. Stop automated retries for that publisher/proxy bucket.
 2. Record the challenge type and URL.
-3. Apply the challenge cooldown in `throttling-cooldown.md`.
-4. Ask the user to complete legitimate verification manually if they have authorized access.
-5. Retry once after successful manual verification; if it fails again, switch route or stop.
+3. Apply the challenge cooldown (see `throttling-cooldown.md`).
+4. Ask the user to complete legitimate verification manually.
+5. Retry once after successful manual verification.
 
 ## When Browser Fallback Is Not Enough
 
-Browser fallback will not solve:
-
 - Missing institutional entitlement.
-- Expired SSO sessions where the user cannot log in.
-- Publisher blocks for a proxy exit after repeated rapid attempts.
-- Nonexistent DOI or article pages without PDF availability.
-- Legal or policy restrictions on access.
+- Expired SSO sessions.
+- Publisher blocks after repeated rapid attempts.
+- Nonexistent DOI or articles without PDF availability.
