@@ -1,32 +1,32 @@
 # Paper Acquisition Anti-Scrape Skill
 
-Language: **English** | [中文](README.zh-CN.md)
+语言： [English](README.md) | **中文**
 
-OpenClaw/Codex skill for resilient academic PDF acquisition. It uses an OA-first workflow with `scansci-pdf`, then falls back to authorized institutional login and real-browser PDF download when publisher pages require browser sessions.
+这是一个面向 OpenClaw/Codex 的学术论文 PDF 获取 skill。它采用“开放获取优先”的流程：先用 `scansci-pdf` 快速检索/下载；遇到出版商页面需要登录、浏览器会话或浏览器专属 PDF 下载时，再切换到授权机构登录和真实浏览器兜底。
 
-This repository is the skill folder itself. Clone it into your local `skills/` directory as `paper-acquisition-anti-scrape`.
+这个仓库本身就是 skill 目录。把它 clone 到本地 `skills/` 目录，并保持目录名为 `paper-acquisition-anti-scrape` 即可。
 
-## What It Does
+## 功能
 
-- Download academic PDFs from DOI, DOI URL, arXiv ID, title lists, or BibTeX.
-- Prefer open-access and legal/authorized sources first.
-- Use `scansci-pdf` MCP for fast search, citation export, WebVPN, Tor, and batch download workflows.
-- Use browser fallback for publisher pages that require Chrome/CDP, SSO cookies, or browser-only PDF delivery.
-- Provide cooldown rules for publisher throttling, human verification, and bulk jobs.
-- Keep private data out of the skill: no cookies, browser profiles, credentials, API keys, or institutional sessions are included.
+- 从 DOI、DOI URL、arXiv ID、标题列表或 BibTeX 获取学术 PDF。
+- 优先使用开放获取和合法/授权来源。
+- 使用 `scansci-pdf` MCP 处理快速检索、引用导出、WebVPN、Tor 和批量下载。
+- 当出版商页面需要 Chrome/CDP、SSO cookie 或浏览器专属 PDF 链路时，使用浏览器兜底。
+- 为出版商限速、人机验证和批量任务提供冷却规则。
+- skill 内不包含私人数据：没有 cookie、浏览器 profile、凭据、API key 或机构会话。
 
-## Quick Install
+## 快速安装
 
-Choose the skills directory used by your OpenClaw/Codex workspace.
+选择你的 OpenClaw/Codex 工作区使用的 skills 目录。
 
-Common locations:
+常见位置：
 
 ```bash
 ~/.openclaw/workspace/skills
 ~/.codex/skills
 ```
 
-Clone directly into that directory:
+直接 clone 到该目录：
 
 ```bash
 mkdir -p ~/.openclaw/workspace/skills
@@ -34,7 +34,7 @@ git clone https://github.com/jyluo1994/paper-acquisition-anti-scrape.git \
   ~/.openclaw/workspace/skills/paper-acquisition-anti-scrape
 ```
 
-Or clone anywhere and run the bundled installer:
+也可以先 clone 到任意位置，再运行自带安装脚本：
 
 ```bash
 git clone https://github.com/jyluo1994/paper-acquisition-anti-scrape.git
@@ -42,23 +42,23 @@ cd paper-acquisition-anti-scrape
 bash scripts/install.sh
 ```
 
-Install to an explicit directory:
+安装到指定目录：
 
 ```bash
 bash scripts/install.sh /path/to/your/skills
 ```
 
-Restart OpenClaw/Codex if your environment loads skills only at startup.
+如果你的 OpenClaw/Codex 只在启动时加载 skill，安装后请重启。
 
-## Required Dependency: scansci-pdf MCP
+## 必需依赖：scansci-pdf MCP
 
-Install the public Python package:
+安装公开 Python 包：
 
 ```bash
 python3 -m pip install -U scansci-pdf
 ```
 
-Add the MCP server to your OpenClaw gateway config, usually `gateway.yaml`:
+把 MCP server 加到 OpenClaw 的 gateway 配置里，通常是 `gateway.yaml`：
 
 ```yaml
 mcp:
@@ -68,7 +68,7 @@ mcp:
       args: ["run"]
 ```
 
-If you installed `scansci-pdf` inside a virtual environment, point `command` to the executable:
+如果 `scansci-pdf` 安装在虚拟环境中，把 `command` 指向虚拟环境里的可执行文件：
 
 ```yaml
 mcp:
@@ -78,18 +78,18 @@ mcp:
       args: ["run"]
 ```
 
-Restart the gateway, then check:
+重启 gateway 后检查：
 
 ```text
 scansci_pdf_setup_check
 scansci_pdf_health_check
 ```
 
-## Optional Browser Fallback
+## 可选：浏览器兜底
 
-Use this only when normal `scansci-pdf` download fails because the publisher requires a real browser session, institutional SSO, or browser-only PDF delivery.
+只有当普通 `scansci-pdf` 下载失败，并且原因是出版商需要真实浏览器会话、机构 SSO 或浏览器专属 PDF 交付时，才需要这一步。
 
-Install Chrome/Chromium and Node.js, then prepare the browser-probe scripts from an authorized source:
+先安装 Chrome/Chromium 和 Node.js，然后从授权来源准备 browser-probe 脚本：
 
 ```bash
 mkdir -p ~/.openclaw
@@ -98,7 +98,7 @@ cd ~/.openclaw/browser-probe
 npm install
 ```
 
-Expected scripts:
+预期脚本：
 
 ```text
 ~/.openclaw/browser-probe/acquire-paper.js
@@ -108,14 +108,14 @@ Expected scripts:
 ~/.openclaw/browser-probe/test-springer-download-from-doi.js
 ```
 
-Start Chrome with CDP enabled:
+启动开启 CDP 的 Chrome：
 
 ```bash
 google-chrome --remote-debugging-port=9222 \
   --user-data-dir="$HOME/.openclaw/browser-clone"
 ```
 
-macOS:
+macOS：
 
 ```bash
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
@@ -123,92 +123,92 @@ macOS:
   --user-data-dir="$HOME/.openclaw/browser-clone"
 ```
 
-Check CDP:
+检查 CDP：
 
 ```bash
 curl -s http://127.0.0.1:9222/json/version
 ```
 
-## Environment Check
+## 环境检查
 
-From the installed skill folder:
+在已安装的 skill 目录中运行：
 
 ```bash
 bash scripts/check_environment.sh
 ```
 
-This checks Python, Node, npm, `scansci-pdf`, Chrome/Chromium, browser-probe scripts, and the Chrome DevTools endpoint.
+这个脚本会检查 Python、Node、npm、`scansci-pdf`、Chrome/Chromium、browser-probe 脚本和 Chrome DevTools 端点。
 
-## Common Workflows
+## 常用工作流
 
-### Download One Paper
+### 下载单篇论文
 
 ```text
 Use $paper-acquisition-anti-scrape to download 10.xxxx/yyyy.
 ```
 
-The skill should first try:
+skill 会优先尝试：
 
 ```text
 scansci_pdf_smart_download(identifier="10.xxxx/yyyy")
 ```
 
-or:
+或：
 
 ```text
 scansci_pdf_download(identifier="10.xxxx/yyyy", strategy="fastest")
 ```
 
-### OA / Authorized-Only Download
+### 仅使用开放/授权来源
 
 ```text
 Use $paper-acquisition-anti-scrape to download this DOI using legal/open sources only: 10.xxxx/yyyy.
 ```
 
-Expected tool route:
+预期工具路径：
 
 ```text
 scansci_pdf_download(identifier="10.xxxx/yyyy", strategy="legal_only")
 ```
 
-### Search, Then Download Selected Results
+### 先检索，再下载选中的结果
 
 ```text
 Use $paper-acquisition-anti-scrape to search papers about "plant functional traits climate change" after 2020 and show candidates before downloading.
 ```
 
-Expected tool route:
+预期工具路径：
 
 ```text
 scansci_pdf_search(query="plant functional traits climate change", year_from=2020, limit=20, sort="cited_by_count")
 ```
 
-Pick papers from the returned list, then download selected DOI values.
+从返回结果中选择论文，再下载对应 DOI。
 
-### Batch Download from a List
+### 从列表批量下载
 
-Create `papers.md` with DOI values, titles, or references, then ask:
+创建 `papers.md`，里面可以放 DOI、标题或参考文献，然后请求：
 
 ```text
 Use $paper-acquisition-anti-scrape to resolve and download papers in papers.md.
 ```
 
-Expected tool route:
+预期工具路径：
 
 ```text
 scansci_pdf_parse_list(file_path="papers.md")
 scansci_pdf_resolve_and_download(file_path="papers.md", resolve_titles=true)
 ```
 
-### Institutional Login
+### 机构登录
 
-When `scansci-pdf` reports paywall or login required:
+当 `scansci-pdf` 返回 paywall 或 login required：
 
 ```text
 scansci_pdf_login(identifier="10.xxxx/yyyy")
 ```
 
-Complete SSO/CARSI/OpenAthens login manually in the opened browser, close the browser when done, then retry:
+在打开的浏览器中手动完成 SSO/CARSI/OpenAthens 登录，完成后关闭浏览器，再重试：
 
 ```text
 scansci_pdf_download(identifier="10.xxxx/yyyy")
@@ -224,15 +224,15 @@ scansci_pdf_vpnsci_test
 scansci_pdf_download(identifier="10.xxxx/yyyy", use_vpnsci=true)
 ```
 
-### Browser Fallback
+### 浏览器兜底
 
-Use after `scansci-pdf` fails with browser-only delivery, 403, TLS fingerprint, or challenge-related symptoms:
+当 `scansci-pdf` 因浏览器专属交付、403、TLS 指纹或挑战页面失败后使用：
 
 ```bash
 node ~/.openclaw/browser-probe/acquire-paper.js "10.xxxx/yyyy"
 ```
 
-Publisher-specific fallback:
+出版商专用兜底：
 
 ```bash
 node ~/.openclaw/browser-probe/fetch-wiley-simple.js "https://onlinelibrary.wiley.com/doi/10.xxxx/yyyy"
@@ -240,28 +240,28 @@ node ~/.openclaw/browser-probe/elsevier-session-acquire.js "10.1016/...."
 node ~/.openclaw/browser-probe/test-springer-download-from-doi.js "10.1007/...."
 ```
 
-## Cooldown Rules
+## 冷却规则
 
-For bulk downloads, throttle by:
+批量下载时按以下维度限速：
 
 ```text
 publisher + proxy/network exit + login profile
 ```
 
-Default delays:
+默认延迟：
 
-| Event | Delay |
+| 事件 | 延迟 |
 | --- | --- |
-| Successful PDF download | 45-90 seconds |
-| PDF not found / DOI unresolved | 15-30 seconds |
-| Network timeout | 90-180 seconds |
-| 403 / suspicious traffic | 10-15 minutes |
-| Human verification / CAPTCHA | 30-60 minutes, no automatic retry |
-| Three consecutive failures in one bucket | 10-15 minutes and route review |
+| PDF 下载成功 | 45-90 秒 |
+| 未找到 PDF / DOI 未解析 | 15-30 秒 |
+| 网络超时 | 90-180 秒 |
+| 403 / suspicious traffic | 10-15 分钟 |
+| 人机验证 / CAPTCHA | 30-60 分钟，不自动重试 |
+| 同一 bucket 连续失败 3 次 | 10-15 分钟，并重新评估路线 |
 
-## Troubleshooting
+## 故障排查
 
-Run these first:
+优先运行：
 
 ```text
 scansci_pdf_setup_check
@@ -269,28 +269,28 @@ scansci_pdf_health_check
 scansci_pdf_network_diagnose
 ```
 
-Check browser fallback:
+检查浏览器兜底：
 
 ```bash
 bash scripts/check_environment.sh
 curl -s http://127.0.0.1:9222/json/version
 ```
 
-If CDP is not reachable, restart Chrome with:
+如果 CDP 不可访问，重新启动 Chrome：
 
 ```bash
 google-chrome --remote-debugging-port=9222 \
   --user-data-dir="$HOME/.openclaw/browser-clone"
 ```
 
-## Safety and Privacy
+## 安全与隐私
 
-- Do not commit or share cookies, browser profiles, SSO session stores, proxy credentials, API keys, or institutional login data.
-- Do not automate CAPTCHA solving or human-verification challenges.
-- Prefer open access and authorized institutional access.
-- If a publisher blocks a route, cool down instead of rapidly retrying or rotating exits.
+- 不要提交或分享 cookie、浏览器 profile、SSO 会话目录、代理凭据、API key 或机构登录数据。
+- 不要自动化破解 CAPTCHA 或人机验证。
+- 优先使用开放获取和授权机构访问。
+- 如果出版商阻断某条路线，先冷却，不要快速重试或频繁轮换出口。
 
-## Public Dependency Links
+## 公开依赖链接
 
 - scansci-pdf: <https://pypi.org/project/scansci-pdf/>
 - Camoufox: <https://camoufox.com/python/installation/>
