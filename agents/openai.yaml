@@ -1,0 +1,11 @@
+interface:
+  display_name: "Paper Acquisition Anti-Scrape"
+  short_description: "Resilient academic PDF acquisition"
+  default_prompt: "Use $paper-acquisition-anti-scrape to acquire these DOI/arXiv PDFs with OA-first scansci-pdf, browser fallback, SSO, and cooldown safeguards."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "scansci-pdf"
+      description: "Academic paper search, citation, WebVPN, and PDF download MCP server"
+policy:
+  allow_implicit_invocation: true
