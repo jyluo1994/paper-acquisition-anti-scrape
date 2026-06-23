@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd "$script_dir/.." && pwd)"
+plugin_dir="$repo_root/zotero-plugin"
+dist_dir="$repo_root/dist"
+xpi="$dist_dir/paper-acquisition-anti-scrape-zotero.xpi"
+
+if ! command -v zip >/dev/null 2>&1; then
+  printf '[ERROR] zip is required to build the Zotero plugin.\n' >&2
+  exit 1
+fi
+
+for required in manifest.json bootstrap.js prefs.js README.md; do
+  if [ ! -f "$plugin_dir/$required" ]; then
+    printf '[ERROR] Missing %s\n' "$plugin_dir/$required" >&2
+    exit 1
+  fi
+done
+
+mkdir -p "$dist_dir"
+rm -f "$xpi"
+
+(
+  cd "$plugin_dir"
+  zip -qr "$xpi" manifest.json bootstrap.js prefs.js README.md
+)
+
+zip -T "$xpi" >/dev/null
+printf '[OK] Built %s\n' "$xpi"
+

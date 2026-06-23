@@ -28,6 +28,7 @@ This repository is the skill folder itself. Clone it into your local `skills/` d
 - [Quick Install](#quick-install)
 - [Required Dependency: scansci-pdf MCP](#required-dependency-scansci-pdf-mcp)
 - [Optional Browser Fallback](#optional-browser-fallback)
+- [Zotero Plugin MVP](#zotero-plugin-mvp)
 - [Common Workflows](#common-workflows)
 - [Troubleshooting](#troubleshooting)
 - [Safety and Privacy](#safety-and-privacy)
@@ -154,6 +155,27 @@ Check CDP:
 ```bash
 curl -s http://127.0.0.1:9222/json/version
 ```
+
+## Zotero Plugin MVP
+
+This repository includes a Zotero 7 plugin scaffold and a local helper service:
+
+```bash
+node service/src/server.js
+bash scripts/build-zotero-plugin.sh
+```
+
+The XPI is built at:
+
+```text
+dist/paper-acquisition-anti-scrape-zotero.xpi
+```
+
+Install it in Zotero 7 from `Tools -> Add-ons -> Install Add-on From File...`.
+
+The plugin adds `Acquire PDF via Paper Acquisition` to Zotero's item context menu. It sends DOI/title/URL metadata to the local service, polls the job status, and imports a returned PDF path as a child attachment. Institutional cookies and browser profiles stay outside Zotero under local service-controlled directories.
+
+See [docs/zotero-plugin.md](docs/zotero-plugin.md) for the current API and security boundary.
 
 ## Environment Check
 
