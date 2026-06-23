@@ -15,6 +15,7 @@ const DEFAULT_DOWNLOAD_DIR = path.join(os.homedir(), ".paper-acquisition", "down
 const DOWNLOAD_DIR = path.resolve(process.env.PAA_DOWNLOAD_DIR || DEFAULT_DOWNLOAD_DIR);
 const PROFILES_DIR = path.resolve(process.env.PAA_PROFILES_DIR || path.join(os.homedir(), ".paper-acquisition", "profiles"));
 const BROWSER_FALLBACK = path.resolve(process.env.PAA_BROWSER_FALLBACK || path.join(REPO_ROOT, "scripts", "browser-fallback.js"));
+const FAST_COMMAND = process.env.PAA_FAST_COMMAND || "";
 
 const jobs = new Map();
 
@@ -112,6 +113,17 @@ async function runAcquireJob(job, body) {
 
   fs.mkdirSync(DOWNLOAD_DIR, { recursive: true });
 
+  if (FAST_COMMAND) {
+    const fast = await runFastCommand(identifier, body);
+    if (fast.terminal) {
+      updateJob(job, fast.patch);
+      return;
+    }
+    updateJob(job, {
+      fastAttempt: fast.patch
+    });
+  }
+
   const env = {
     ...process.env,
     OUTPUT_DIR: DOWNLOAD_DIR
@@ -141,6 +153,73 @@ async function runAcquireJob(job, body) {
     pdfPath: data.pdf_path || data.pdfPath || "",
     stderr: trimLog(result.stderr)
   });
+}
+
+async function runFastCommand(identifier, body) {
+  const command = renderFastCommand(FAST_COMMAND, identifier, body);
+  const result = await spawnJSON("/bin/sh", ["-lc", command], {
+    cwd: REPO_ROOT,
+    env: {
+      ...process.env,
+      PAA_IDENTIFIER: identifier,
+      PAA_DOWNLOAD_DIR: DOWNLOAD_DIR
+    },
+    timeoutMS: Number(process.env.PAA_FAST_TIMEOUT_MS || 180000)
+  });
+
+  const data = result.json || {};
+  const status = normalizeStatus(data.status || data.error_type || "");
+  const pdfPath = data.pdf_path || data.pdfPath || data.path || "";
+
+  if (result.exitCode === 0 && status === "ok" && pdfPath && fs.existsSync(pdfPath)) {
+    return {
+      terminal: true,
+      patch: {
+        ...data,
+        status: "ok",
+        route: data.route || "fast-command",
+        pdfPath,
+        stderr: trimLog(result.stderr)
+      }
+    };
+  }
+
+  if (["human_verification_required", "captcha_stop", "cooldown"].includes(status)) {
+    return {
+      terminal: true,
+      patch: {
+        ...data,
+        status,
+        route: data.route || "fast-command",
+        stderr: trimLog(result.stderr)
+      }
+    };
+  }
+
+  return {
+    terminal: false,
+    patch: {
+      status: status || "fallback_to_browser",
+      route: "fast-command",
+      exitCode: result.exitCode,
+      stdout: trimLog(result.stdout),
+      stderr: trimLog(result.stderr)
+    }
+  };
+}
+
+function renderFastCommand(template, identifier, body) {
+  return template
+    .replace(/\{identifier\}/g, shellQuote(identifier))
+    .replace(/\{doi\}/g, shellQuote(body.doi || ""))
+    .replace(/\{url\}/g, shellQuote(body.url || ""))
+    .replace(/\{title\}/g, shellQuote(body.title || ""))
+    .replace(/\{profile\}/g, shellQuote(body.profile || "auto"))
+    .replace(/\{downloadDir\}/g, shellQuote(DOWNLOAD_DIR));
+}
+
+function shellQuote(value) {
+  return `'${String(value).replace(/'/g, "'\\''")}'`;
 }
 
 function normalizeStatus(status) {

@@ -5,6 +5,9 @@ This repository now includes a Zotero 7 plugin MVP plus a local helper service.
 ## What Works In This MVP
 
 - Adds a Zotero item context-menu command: `Acquire PDF via Paper Acquisition`.
+- Adds profile-specific commands:
+  - `Acquire PDF using profile...`
+  - `Refresh institution login profile...`
 - Sends selected Zotero item metadata to `http://127.0.0.1:24372/api/acquire`.
 - Polls the local job endpoint.
 - Imports a returned local PDF path as a child attachment.
@@ -35,6 +38,24 @@ The service wraps the existing browser fallback script:
 ```text
 scripts/browser-fallback.js
 ```
+
+Optionally configure a fast command that runs before browser fallback:
+
+```bash
+PAA_FAST_COMMAND='scansci-pdf download --strategy fastest --output-dir {downloadDir} {identifier}' \
+  node service/src/server.js
+```
+
+Supported placeholders:
+
+- `{identifier}`
+- `{doi}`
+- `{url}`
+- `{title}`
+- `{profile}`
+- `{downloadDir}`
+
+The command should print a JSON line with either `{"status":"ok","pdf_path":"/path/to/file.pdf"}` or a controlled failure status such as `paywall`, `login_required`, `human_verification_required`, or `cooldown`.
 
 Downloaded PDFs default to:
 
@@ -91,4 +112,3 @@ The Zotero plugin must not store raw cookies, proxy passwords, SSO tokens, or re
 - job status
 - final local PDF path
 - non-sensitive route/provider metadata
-

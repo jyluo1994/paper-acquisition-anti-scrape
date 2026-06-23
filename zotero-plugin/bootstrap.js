@@ -2,6 +2,8 @@ var PaperAcquisitionAntiScrape;
 
 (function () {
   const MENU_ID = "paper-acquisition-anti-scrape-acquire";
+  const MENU_PROFILE_ID = "paper-acquisition-anti-scrape-acquire-profile";
+  const MENU_LOGIN_ID = "paper-acquisition-anti-scrape-login";
   const MENU_SEPARATOR_ID = "paper-acquisition-anti-scrape-separator";
   const STATUS_TAGS = [
     "pdf:acquiring",
@@ -63,25 +65,49 @@ var PaperAcquisitionAntiScrape;
       const separator = this.createXULElement(doc, "menuseparator");
       separator.id = MENU_SEPARATOR_ID;
 
-      const item = this.createXULElement(doc, "menuitem");
-      item.id = MENU_ID;
-      item.setAttribute("label", "Acquire PDF via Paper Acquisition");
-      item.setAttribute("accesskey", "A");
-      item.addEventListener("command", () => {
-        this.acquireSelected(win).catch((err) => {
+      const acquireItem = this.createXULElement(doc, "menuitem");
+      acquireItem.id = MENU_ID;
+      acquireItem.setAttribute("label", "Acquire PDF via Paper Acquisition");
+      acquireItem.setAttribute("accesskey", "A");
+      acquireItem.addEventListener("command", () => {
+        this.acquireSelected(win, "auto").catch((err) => {
           this.log(`Acquire failed: ${err.stack || err}`);
           this.alert(win, "Paper Acquisition", err.message || String(err));
         });
       });
 
+      const acquireWithProfileItem = this.createXULElement(doc, "menuitem");
+      acquireWithProfileItem.id = MENU_PROFILE_ID;
+      acquireWithProfileItem.setAttribute("label", "Acquire PDF using profile...");
+      acquireWithProfileItem.addEventListener("command", () => {
+        const profile = this.promptText(win, "Paper Acquisition", "Institution profile:", "sysu-webvpn");
+        if (!profile) return;
+        this.acquireSelected(win, profile).catch((err) => {
+          this.log(`Profile acquire failed: ${err.stack || err}`);
+          this.alert(win, "Paper Acquisition", err.message || String(err));
+        });
+      });
+
+      const loginItem = this.createXULElement(doc, "menuitem");
+      loginItem.id = MENU_LOGIN_ID;
+      loginItem.setAttribute("label", "Refresh institution login profile...");
+      loginItem.addEventListener("command", () => {
+        this.refreshLoginProfile(win).catch((err) => {
+          this.log(`Login profile refresh failed: ${err.stack || err}`);
+          this.alert(win, "Paper Acquisition", err.message || String(err));
+        });
+      });
+
       menu.appendChild(separator);
-      menu.appendChild(item);
+      menu.appendChild(acquireItem);
+      menu.appendChild(acquireWithProfileItem);
+      menu.appendChild(loginItem);
       this.windows.add(win);
     },
 
     removeFromWindow(win) {
       if (!win || !win.document) return;
-      for (let id of [MENU_ID, MENU_SEPARATOR_ID]) {
+      for (let id of [MENU_ID, MENU_PROFILE_ID, MENU_LOGIN_ID, MENU_SEPARATOR_ID]) {
         const node = win.document.getElementById(id);
         if (node) node.remove();
       }
@@ -95,7 +121,7 @@ var PaperAcquisitionAntiScrape;
       return doc.createElement(name);
     },
 
-    async acquireSelected(win) {
+    async acquireSelected(win, profile = "auto") {
       const selected = this.getSelectedRegularItems(win);
       if (!selected.length) {
         this.alert(win, "Paper Acquisition", "Select one or more regular Zotero items first.");
@@ -114,7 +140,7 @@ var PaperAcquisitionAntiScrape;
 
       for (let item of selected) {
         try {
-          const outcome = await this.acquireItem(item);
+          const outcome = await this.acquireItem(item, profile);
           summary[outcome] = (summary[outcome] || 0) + 1;
         }
         catch (err) {
@@ -146,12 +172,12 @@ var PaperAcquisitionAntiScrape;
       });
     },
 
-    async acquireItem(item) {
+    async acquireItem(item, profile = "auto") {
       if (this.getPref("skipExistingPDF", true) && await this.hasPdfAttachment(item)) {
         return "skipped";
       }
 
-      const payload = this.itemPayload(item);
+      const payload = this.itemPayload(item, profile);
       if (!payload.doi && !payload.url && !payload.title) {
         await this.setOnlyStatusTag(item, "pdf:missing-metadata");
         return "missingMetadata";
@@ -169,7 +195,7 @@ var PaperAcquisitionAntiScrape;
       return await this.handleResult(item, result);
     },
 
-    itemPayload(item) {
+    itemPayload(item, profile = "auto") {
       return {
         zoteroItemKey: item.key,
         libraryID: item.libraryID,
@@ -179,8 +205,35 @@ var PaperAcquisitionAntiScrape;
         publicationTitle: this.cleanField(item.getField("publicationTitle")),
         date: this.cleanField(item.getField("date")),
         mode: "manual",
-        profile: "auto"
+        profile: profile || "auto"
       };
+    },
+
+    async refreshLoginProfile(win) {
+      const profile = this.promptText(win, "Paper Acquisition", "Institution profile:", "sysu-webvpn");
+      if (!profile) return;
+
+      const loginUrl = this.promptText(
+        win,
+        "Paper Acquisition",
+        "Login URL or about:blank:",
+        "about:blank"
+      ) || "about:blank";
+
+      const serviceURL = this.getServiceURL();
+      const result = await this.postJSON(`${serviceURL}/api/login/${encodeURIComponent(profile)}`, {
+        loginUrl
+      });
+
+      this.alert(
+        win,
+        "Paper Acquisition",
+        [
+          `Profile: ${result.profile || profile}`,
+          `CDP: ${result.cdpURL || "unknown"}`,
+          `Browser profile: ${result.userDataDir || "unknown"}`
+        ].join("\n")
+      );
     },
 
     cleanField(value) {
@@ -385,6 +438,18 @@ var PaperAcquisitionAntiScrape;
       }
     },
 
+    promptText(win, title, message, defaultValue = "") {
+      const input = { value: defaultValue };
+      try {
+        const ok = Services.prompt.prompt(win, title, message, input, null, {});
+        return ok ? String(input.value || "").trim() : "";
+      }
+      catch {
+        const value = win.prompt(message, defaultValue);
+        return value ? String(value).trim() : "";
+      }
+    },
+
     log(message) {
       try {
         Zotero.debug(`[paper-acquisition] ${message}`);
@@ -416,4 +481,3 @@ function onMainWindowLoad(event) {
 function onMainWindowUnload(event) {
   PaperAcquisitionAntiScrape.onMainWindowUnload(event);
 }
-

@@ -1,9 +1,11 @@
 # Zotero Plugin
 
-This directory contains a Zotero 7 plugin that adds a right-click command to Zotero items:
+This directory contains a Zotero 7 plugin that adds right-click commands to Zotero items:
 
 ```text
 Acquire PDF via Paper Acquisition
+Acquire PDF using profile...
+Refresh institution login profile...
 ```
 
 The plugin does not store institutional cookies, proxy credentials, or browser sessions in Zotero. It sends item metadata to a local service bound to `127.0.0.1`, waits for the service to acquire the PDF, and imports the returned local PDF path as a child attachment.
@@ -41,4 +43,3 @@ The default service URL is:
 ```text
 http://127.0.0.1:24372
 ```
-
