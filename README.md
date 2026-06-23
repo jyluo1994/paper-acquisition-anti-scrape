@@ -28,7 +28,7 @@ This repository is the skill folder itself. Clone it into your local `skills/` d
 - [Quick Install](#quick-install)
 - [Required Dependency: scansci-pdf MCP](#required-dependency-scansci-pdf-mcp)
 - [Optional Browser Fallback](#optional-browser-fallback)
-- [Zotero Plugin MVP](#zotero-plugin-mvp)
+- [Zotero Integration](#zotero-integration)
 - [Common Workflows](#common-workflows)
 - [Troubleshooting](#troubleshooting)
 - [Safety and Privacy](#safety-and-privacy)
@@ -156,27 +156,15 @@ Check CDP:
 curl -s http://127.0.0.1:9222/json/version
 ```
 
-## Zotero Plugin
+## Zotero Integration
 
-This repository includes a Zotero plugin for Zotero 7 through 10 and a local helper service:
-
-```bash
-bash scripts/build-zotero-plugin.sh
-```
-
-The XPI is built at:
+The Zotero plugin has been split into its own repository:
 
 ```text
-dist/paper-acquisition-anti-scrape-zotero.xpi
+https://github.com/jyluo1994/paper-acquisition-zotero
 ```
 
-Install it in Zotero from `Tools -> Add-ons -> Install Add-on From File...`.
-
-The plugin adds Zotero right-click commands for selected items, a `Paper Acquisition` settings pane, a progress window, optional auto-acquisition for newly added regular items, and duplicate-prevention checks. It sends DOI/title/URL metadata to the local service, polls the job status, and imports a returned PDF path as a child attachment.
-
-In Zotero, open `Tools -> Paper Acquisition 设置...` to configure the service URL, default institutional profile, optional service auto-start command, and automatic-acquisition behavior. Institutional cookies and browser profiles stay outside Zotero under local service-controlled directories.
-
-See [docs/zotero-plugin.md](docs/zotero-plugin.md) for the current API and security boundary.
+Keep Zotero plugin development, releases, XPI builds, and local helper-service configuration there. This repository remains focused on the OpenClaw/Codex skill.
 
 ## Environment Check
 

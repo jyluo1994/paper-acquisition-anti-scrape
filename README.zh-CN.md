@@ -28,7 +28,7 @@
 - [快速安装](#快速安装)
 - [必需依赖：scansci-pdf MCP](#必需依赖scansci-pdf-mcp)
 - [可选：浏览器兜底](#可选浏览器兜底)
-- [Zotero 插件 MVP](#zotero-插件-mvp)
+- [Zotero 集成](#zotero-集成)
 - [常用工作流](#常用工作流)
 - [故障排查](#故障排查)
 - [安全与隐私](#安全与隐私)
@@ -156,27 +156,15 @@ macOS：
 curl -s http://127.0.0.1:9222/json/version
 ```
 
-## Zotero 插件
+## Zotero 集成
 
-本仓库现在包含适用于 Zotero 7 到 10 的插件和本地 helper service：
-
-```bash
-bash scripts/build-zotero-plugin.sh
-```
-
-构建后的 XPI 位于：
+Zotero 插件已经剥离到独立仓库：
 
 ```text
-dist/paper-acquisition-anti-scrape-zotero.xpi
+https://github.com/jyluo1994/paper-acquisition-zotero
 ```
 
-在 Zotero 里通过 `Tools -> Add-ons -> Install Add-on From File...` 安装。
-
-插件会在 Zotero 条目的右键菜单里加入获取 PDF 命令，提供 `Paper Acquisition` 设置页、进度窗口、新题录自动获取选项和防重复队列。它把 DOI/title/URL 元数据发给本地 service，轮询任务状态，并把返回的本地 PDF 路径作为子附件导入 Zotero。
-
-在 Zotero 里打开 `Tools -> Paper Acquisition 设置...`，可以配置 service URL、默认机构 profile、可选的 service 自动启动命令，以及新题录自动获取策略。机构 cookie 和浏览器 profile 不进入 Zotero，而是留在本地 service 管理的目录中。
-
-当前 API 和安全边界见 [docs/zotero-plugin.md](docs/zotero-plugin.md)。
+Zotero 插件开发、发布、XPI 构建和本地 helper service 配置都放在新仓库。本仓库继续专注于 OpenClaw/Codex skill 本体。
 
 ## 环境检查
 
