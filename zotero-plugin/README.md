@@ -1,6 +1,6 @@
 # Zotero Plugin
 
-This directory contains a Zotero 7 plugin that adds right-click commands to Zotero items:
+This directory contains a Zotero plugin for Zotero 7 through 10 that adds right-click commands to Zotero items:
 
 ```text
 Acquire PDF via Paper Acquisition

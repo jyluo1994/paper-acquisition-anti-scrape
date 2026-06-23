@@ -158,7 +158,7 @@ curl -s http://127.0.0.1:9222/json/version
 
 ## Zotero 插件 MVP
 
-本仓库现在包含 Zotero 7 插件骨架和本地 helper service：
+本仓库现在包含适用于 Zotero 7 到 10 的插件骨架和本地 helper service：
 
 ```bash
 node service/src/server.js
@@ -171,7 +171,7 @@ bash scripts/build-zotero-plugin.sh
 dist/paper-acquisition-anti-scrape-zotero.xpi
 ```
 
-在 Zotero 7 里通过 `Tools -> Add-ons -> Install Add-on From File...` 安装。
+在 Zotero 里通过 `Tools -> Add-ons -> Install Add-on From File...` 安装。
 
 插件会在 Zotero 条目的右键菜单里加入 `Acquire PDF via Paper Acquisition`。它把 DOI/title/URL 元数据发给本地 service，轮询任务状态，并把返回的本地 PDF 路径作为子附件导入 Zotero。机构 cookie 和浏览器 profile 不进入 Zotero，而是留在本地 service 管理的目录中。
 

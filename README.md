@@ -158,7 +158,7 @@ curl -s http://127.0.0.1:9222/json/version
 
 ## Zotero Plugin MVP
 
-This repository includes a Zotero 7 plugin scaffold and a local helper service:
+This repository includes a Zotero plugin scaffold for Zotero 7 through 10 and a local helper service:
 
 ```bash
 node service/src/server.js
@@ -171,7 +171,7 @@ The XPI is built at:
 dist/paper-acquisition-anti-scrape-zotero.xpi
 ```
 
-Install it in Zotero 7 from `Tools -> Add-ons -> Install Add-on From File...`.
+Install it in Zotero from `Tools -> Add-ons -> Install Add-on From File...`.
 
 The plugin adds `Acquire PDF via Paper Acquisition` to Zotero's item context menu. It sends DOI/title/URL metadata to the local service, polls the job status, and imports a returned PDF path as a child attachment. Institutional cookies and browser profiles stay outside Zotero under local service-controlled directories.
 

@@ -1,6 +1,6 @@
 # Zotero Plugin Integration
 
-This repository now includes a Zotero 7 plugin MVP plus a local helper service.
+This repository now includes a Zotero plugin MVP for Zotero 7 through 10 plus a local helper service.
 
 ## What Works In This MVP
 
@@ -83,7 +83,7 @@ Output:
 dist/paper-acquisition-anti-scrape-zotero.xpi
 ```
 
-Install in Zotero 7:
+Install in Zotero:
 
 ```text
 Tools -> Add-ons -> Install Add-on From File...
