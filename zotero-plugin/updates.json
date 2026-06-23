@@ -1,0 +1,18 @@
+{
+  "addons": {
+    "paper-acquisition-anti-scrape@jyluo1994.github.io": {
+      "updates": [
+        {
+          "version": "0.1.4",
+          "update_link": "https://github.com/jyluo1994/paper-acquisition-anti-scrape/releases/download/v0.1.4/paper-acquisition-anti-scrape-zotero.xpi",
+          "applications": {
+            "zotero": {
+              "strict_min_version": "7.0",
+              "strict_max_version": "10.99.99"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
