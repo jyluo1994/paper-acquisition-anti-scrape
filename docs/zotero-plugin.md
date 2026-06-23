@@ -8,6 +8,14 @@ This repository now includes a Zotero plugin MVP for Zotero 7 through 10 plus a 
 - Adds profile-specific commands:
   - `Acquire PDF using profile...`
   - `Refresh institution login profile...`
+- Adds a `Paper Acquisition` Zotero settings pane.
+- Adds a Zotero Tools menu shortcut to the settings pane.
+- Supports queued manual acquisition for one or more selected items.
+- Shows a Zotero progress window with the current item title and final status.
+- Optionally auto-acquires PDFs for newly added regular items.
+- Avoids duplicate work by skipping items that already have PDFs, already have active/queued jobs, or are tagged as already acquired/acquiring.
+- Can pause automatic acquisition while Zotero's built-in associated-file download is enabled.
+- Can optionally start the local service from a configured working directory and shell command.
 - Sends selected Zotero item metadata to `http://127.0.0.1:24372/api/acquire`.
 - Polls the local job endpoint.
 - Imports a returned local PDF path as a child attachment.
@@ -22,6 +30,23 @@ This repository now includes a Zotero plugin MVP for Zotero 7 through 10 plus a 
 - Keeps institutional cookies outside Zotero.
 
 ## Start The Local Service
+
+From the Zotero settings pane:
+
+```text
+Tools -> Paper Acquisition 设置...
+```
+
+Set:
+
+```text
+Service directory: /path/to/paper-acquisition-anti-scrape
+Start command: npm --prefix service start
+```
+
+Then click `Start service`, or enable `Start the local service automatically when needed`.
+
+Manual terminal startup still works:
 
 ```bash
 node service/src/server.js
@@ -91,6 +116,8 @@ Tools -> Add-ons -> Install Add-on From File...
 
 ## Institution Sessions
 
+From the Zotero settings pane, click `Refresh login profile` after choosing the default profile.
+
 Use the login endpoint to start a dedicated browser profile:
 
 ```bash
@@ -117,6 +144,12 @@ Use separate profile names for separate institutional routes, for example:
 Do not export or commit these profile directories.
 
 For the PUMC route, `pumc-kokonur-zeroomega` and `pumc-webvpn` are configured to reuse the user's existing Chrome ZeroOmega profile named `kokonur`. The repository stores only the profile name and Chrome launch metadata, not proxy credentials. Before acquisition, use `Refresh institution login profile...` and confirm Chrome is using `kokonur` in ZeroOmega.
+
+## Automatic Acquisition
+
+Automatic acquisition is off by default. Enable it in the plugin settings only after confirming the manual right-click flow works.
+
+The automatic flow listens for newly added regular Zotero items, waits for the configured delay, then checks whether a PDF attachment already exists before enqueueing a job. This delay helps avoid conflicts with Zotero's built-in associated-file download or other PDF-acquisition plugins. If `Pause automatic acquisition while Zotero's built-in associated-file download is enabled` is on and Zotero's `downloadAssociatedFiles` preference is enabled, automatic acquisition stays paused.
 
 ## Security Boundary
 
