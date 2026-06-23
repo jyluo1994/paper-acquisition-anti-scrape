@@ -24,9 +24,16 @@ rm -f "$xpi"
 
 (
   cd "$plugin_dir"
-  zip -qr "$xpi" manifest.json bootstrap.js prefs.js README.md
+  tmp_dir="$(mktemp -d)"
+  trap 'rm -rf "$tmp_dir"' EXIT
+  cp manifest.json bootstrap.js prefs.js README.md "$tmp_dir"/
+  mkdir -p "$tmp_dir/defaults/preferences"
+  cp prefs.js "$tmp_dir/defaults/preferences/defaults.js"
+  (
+    cd "$tmp_dir"
+    zip -qr "$xpi" manifest.json bootstrap.js prefs.js README.md defaults/preferences/defaults.js
+  )
 )
 
 zip -T "$xpi" >/dev/null
 printf '[OK] Built %s\n' "$xpi"
-
