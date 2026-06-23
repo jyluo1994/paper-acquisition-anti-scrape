@@ -43,3 +43,5 @@ The default service URL is:
 ```text
 http://127.0.0.1:24372
 ```
+
+The bundled service includes example institution profiles such as `pumc-kokonur-zeroomega`, `pumc-webvpn`, `sysu-carsi`, `sysu-portal`, and `sysu-vpn`. The PUMC profile reuses Chrome ZeroOmega's `kokonur` profile and does not store proxy credentials in this repository.

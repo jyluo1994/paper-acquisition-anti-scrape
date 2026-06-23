@@ -16,6 +16,7 @@ const DOWNLOAD_DIR = path.resolve(process.env.PAA_DOWNLOAD_DIR || DEFAULT_DOWNLO
 const PROFILES_DIR = path.resolve(process.env.PAA_PROFILES_DIR || path.join(os.homedir(), ".paper-acquisition", "profiles"));
 const BROWSER_FALLBACK = path.resolve(process.env.PAA_BROWSER_FALLBACK || path.join(REPO_ROOT, "scripts", "browser-fallback.js"));
 const FAST_COMMAND = process.env.PAA_FAST_COMMAND || "";
+const PROFILE_CONFIG = loadProfileConfig();
 
 const jobs = new Map();
 
@@ -93,6 +94,7 @@ function updateJob(job, patch) {
 
 async function runAcquireJob(job, body) {
   updateJob(job, { status: "running" });
+  const profileConfig = getProfile(body.profile || "auto");
 
   const identifier = cleanIdentifier(body);
   if (!identifier) {
@@ -126,7 +128,12 @@ async function runAcquireJob(job, body) {
 
   const env = {
     ...process.env,
-    OUTPUT_DIR: DOWNLOAD_DIR
+    OUTPUT_DIR: DOWNLOAD_DIR,
+    BROWSER_URL: profileConfig.browserURL || process.env.BROWSER_URL || "http://127.0.0.1:9222",
+    CDP_PORT: String(profileConfig.cdpPort || process.env.CDP_PORT || 9222),
+    CHROME_BIN: process.env.CHROME_BIN || detectChrome(),
+    CHROME_USER_DATA_DIR: expandPath(profileConfig.browserUserDataDir || process.env.CHROME_USER_DATA_DIR || ""),
+    CHROME_PROFILE_DIRECTORY: profileConfig.chromeProfileDirectory || process.env.CHROME_PROFILE_DIRECTORY || ""
   };
 
   const result = await spawnJSON(process.execPath, [BROWSER_FALLBACK, identifier], {
@@ -296,27 +303,63 @@ function safeProfileName(profile) {
   return safe || "default";
 }
 
+function loadProfileConfig() {
+  const configured = process.env.PAA_PROFILES_FILE || path.join(REPO_ROOT, "service", "profiles.json");
+  const fallback = path.join(REPO_ROOT, "service", "profiles.example.json");
+  for (const filePath of [configured, fallback]) {
+    try {
+      if (fs.existsSync(filePath)) {
+        const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
+        return parsed.profiles || {};
+      }
+    }
+    catch (err) {
+      console.error(`[profiles] Failed to load ${filePath}: ${err.message}`);
+    }
+  }
+  return {};
+}
+
+function getProfile(profile) {
+  return PROFILE_CONFIG[safeProfileName(profile)] || {};
+}
+
+function expandPath(value) {
+  if (!value) return "";
+  return String(value)
+    .replace(/^~(?=$|\/)/, os.homedir())
+    .replace(/\$\{HOME\}/g, os.homedir())
+    .replace(/\$HOME/g, os.homedir());
+}
+
 async function startLoginProfile(profile, body) {
   const safeProfile = safeProfileName(profile);
+  const profileConfig = getProfile(safeProfile);
   const chrome = process.env.CHROME_BIN || detectChrome();
   if (!chrome) {
     throw new Error("Chrome/Chromium was not found. Set CHROME_BIN to enable profile login.");
   }
 
-  const userDataDir = path.join(PROFILES_DIR, safeProfile, "chrome");
+  const profileDir = safeProfileName(profileConfig.profileDir || safeProfile);
+  const userDataDir = profileConfig.browserUserDataDir
+    ? expandPath(profileConfig.browserUserDataDir)
+    : path.join(PROFILES_DIR, profileDir, "chrome");
   fs.mkdirSync(userDataDir, { recursive: true });
 
-  const port = Number(body.cdpPort || process.env.CDP_PORT || 9222);
-  const startURL = body.loginUrl || "about:blank";
-
-  const child = spawn(chrome, [
+  const port = Number(body.cdpPort || profileConfig.cdpPort || process.env.CDP_PORT || 9222);
+  const startURL = body.loginUrl || profileConfig.loginUrl || "about:blank";
+  const chromeArgs = [
     `--remote-debugging-port=${port}`,
     `--user-data-dir=${userDataDir}`,
     "--no-first-run",
-    "--no-default-browser-check",
-    "--new-window",
-    startURL
-  ], {
+    "--no-default-browser-check"
+  ];
+  if (profileConfig.chromeProfileDirectory) {
+    chromeArgs.push(`--profile-directory=${profileConfig.chromeProfileDirectory}`);
+  }
+  chromeArgs.push("--new-window", startURL);
+
+  const child = spawn(chrome, chromeArgs, {
     detached: true,
     stdio: "ignore"
   });
@@ -325,8 +368,12 @@ async function startLoginProfile(profile, body) {
   return {
     status: "ok",
     profile: safeProfile,
+    label: profileConfig.label || safeProfile,
     cdpURL: `http://127.0.0.1:${port}`,
-    userDataDir
+    userDataDir,
+    loginUrl: startURL,
+    chromeProfileDirectory: profileConfig.chromeProfileDirectory || "",
+    zeroOmegaProfile: profileConfig.zeroOmegaProfile || ""
   };
 }
 
@@ -361,7 +408,16 @@ async function handle(req, res) {
       status: "ok",
       service: "paper-acquisition-zotero-service",
       browserFallback: BROWSER_FALLBACK,
-      downloadDir: DOWNLOAD_DIR
+      downloadDir: DOWNLOAD_DIR,
+      profiles: Object.keys(PROFILE_CONFIG)
+    });
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/profiles") {
+    json(res, 200, {
+      status: "ok",
+      profiles: PROFILE_CONFIG
     });
     return;
   }

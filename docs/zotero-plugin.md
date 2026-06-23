@@ -33,6 +33,14 @@ Health check:
 curl http://127.0.0.1:24372/health
 ```
 
+List configured institutional profiles:
+
+```bash
+curl http://127.0.0.1:24372/api/profiles
+```
+
+To customize local-only profiles, copy `service/profiles.example.json` to `service/profiles.json`. The local file is ignored by git.
+
 The service wraps the existing browser fallback script:
 
 ```text
@@ -99,10 +107,16 @@ Profiles are stored under:
 
 Use separate profile names for separate institutional routes, for example:
 
-- `pumc-proxy`
-- `sysu-webvpn`
+- `pumc-webvpn`
+- `pumc-kokonur-zeroomega`
+- `pumc-webvpn-legacy`
+- `sysu-carsi`
+- `sysu-portal`
+- `sysu-vpn`
 
 Do not export or commit these profile directories.
+
+For the PUMC route, `pumc-kokonur-zeroomega` and `pumc-webvpn` are configured to reuse the user's existing Chrome ZeroOmega profile named `kokonur`. The repository stores only the profile name and Chrome launch metadata, not proxy credentials. Before acquisition, use `Refresh institution login profile...` and confirm Chrome is using `kokonur` in ZeroOmega.
 
 ## Security Boundary
 

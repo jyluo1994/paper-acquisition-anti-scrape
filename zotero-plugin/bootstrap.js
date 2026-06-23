@@ -80,7 +80,7 @@ var PaperAcquisitionAntiScrape;
       acquireWithProfileItem.id = MENU_PROFILE_ID;
       acquireWithProfileItem.setAttribute("label", "Acquire PDF using profile...");
       acquireWithProfileItem.addEventListener("command", () => {
-        const profile = this.promptText(win, "Paper Acquisition", "Institution profile:", "sysu-webvpn");
+        const profile = this.promptText(win, "Paper Acquisition", "Institution profile:", "pumc-kokonur-zeroomega");
         if (!profile) return;
         this.acquireSelected(win, profile).catch((err) => {
           this.log(`Profile acquire failed: ${err.stack || err}`);
@@ -210,27 +210,30 @@ var PaperAcquisitionAntiScrape;
     },
 
     async refreshLoginProfile(win) {
-      const profile = this.promptText(win, "Paper Acquisition", "Institution profile:", "sysu-webvpn");
+      const profile = this.promptText(win, "Paper Acquisition", "Institution profile:", "pumc-kokonur-zeroomega");
       if (!profile) return;
 
       const loginUrl = this.promptText(
         win,
         "Paper Acquisition",
-        "Login URL or about:blank:",
-        "about:blank"
-      ) || "about:blank";
+        "Login URL (blank uses profile default):",
+        ""
+      );
 
       const serviceURL = this.getServiceURL();
-      const result = await this.postJSON(`${serviceURL}/api/login/${encodeURIComponent(profile)}`, {
-        loginUrl
-      });
+      const body = {};
+      if (loginUrl) body.loginUrl = loginUrl;
+      const result = await this.postJSON(`${serviceURL}/api/login/${encodeURIComponent(profile)}`, body);
 
       this.alert(
         win,
         "Paper Acquisition",
         [
           `Profile: ${result.profile || profile}`,
+          `Label: ${result.label || "unknown"}`,
+          `Login URL: ${result.loginUrl || "unknown"}`,
           `CDP: ${result.cdpURL || "unknown"}`,
+          `ZeroOmega: ${result.zeroOmegaProfile || "not configured"}`,
           `Browser profile: ${result.userDataDir || "unknown"}`
         ].join("\n")
       );

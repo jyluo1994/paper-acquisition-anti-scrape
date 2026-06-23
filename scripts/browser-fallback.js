@@ -16,6 +16,8 @@
  *   BROWSER_URL     Chrome CDP 地址（默认 http://127.0.0.1:9222）
  *   OUTPUT_DIR      下载目录（默认 ./downloads）
  *   CHROME_BIN      Chrome 可执行文件路径（用于自动启动时）
+ *   CHROME_USER_DATA_DIR Chrome user-data-dir（用于复用 ZeroOmega 等扩展配置）
+ *   CHROME_PROFILE_DIRECTORY Chrome profile directory（例如 Default）
  *   CDP_PORT        远程调试端口（默认 9222）
  */
 
@@ -62,18 +64,23 @@ async function connectBrowser() {
   // 如果指定了 CHROME_BIN，自动启动一个
   const chromeBin = process.env.CHROME_BIN;
   if (chromeBin && fs.existsSync(chromeBin)) {
-    const userDataDir = path.join(OUTPUT, "..", ".browser-profile");
+    const userDataDir = process.env.CHROME_USER_DATA_DIR
+      ? path.resolve(process.env.CHROME_USER_DATA_DIR.replace(/^~(?=$|\/)/, process.env.HOME || ""))
+      : path.join(OUTPUT, "..", ".browser-profile");
     fs.mkdirSync(userDataDir, { recursive: true });
 
     const { spawn } = require("child_process");
-    const child = spawn(chromeBin, [
+    const chromeArgs = [
       `--remote-debugging-port=${CDP_PORT}`,
       `--user-data-dir=${userDataDir}`,
       "--no-first-run",
       "--no-default-browser-check",
-      "--new-window",
-      "about:blank",
-    ], { detached: true, stdio: "ignore" });
+    ];
+    if (process.env.CHROME_PROFILE_DIRECTORY) {
+      chromeArgs.push(`--profile-directory=${process.env.CHROME_PROFILE_DIRECTORY}`);
+    }
+    chromeArgs.push("--new-window", "about:blank");
+    const child = spawn(chromeBin, chromeArgs, { detached: true, stdio: "ignore" });
     child.unref();
 
     for (let i = 0; i < 20; i++) {
